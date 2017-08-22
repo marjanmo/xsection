@@ -1,0 +1,17 @@
+
+.idea
+
+
+# Compiled python modules.
+*.pyc
+
+
+README.md
+
+_build
+_static
+_templates
+
+log.txt
+
+*_ready.txt
