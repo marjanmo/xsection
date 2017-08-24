@@ -11,6 +11,9 @@ It's main purpose is creation and preparation of cross-sectional and longitudina
 hydraulic modelling. Program is heavily inspired by DHI's proprietary plugin, called Mike 11 GIS and therefore mostly
 intended for Mike by DHI software users.
 
+Its most important result is a text file, containing cross sectional data in format, that is directly importable in
+Mike 11 by DHI cross section editor.
+
 By using script, you can create cross section profiles from different elevation sources:
 
 * Digital terrain models (DEMs)
@@ -27,3 +30,4 @@ The following documentation will get you through the installation process and pr
    usage
    tutorial
    about
+
