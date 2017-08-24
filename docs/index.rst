@@ -3,23 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Xsection documentation page!
-=======================================
+Welcome to Xsection documentation!
+==================================
 
 Xsection is a command line(ish) Python-written script for creation of important geometry data in 1D hydraulic modelling.
-It's main purpose is creation and preparation of cross-sectional and longitudinal river profiles for their use in 1D
-hydraulic modelling. Program is heavily inspired by DHI's proprietary plugin, called Mike 11 GIS and therefore mostly
-intended for Mike by DHI software users.
-
 Its most important result is a text file, containing cross sectional data in format, that is directly importable in
-Mike 11 by DHI cross section editor.
+Mike 11 by DHI cross section editor. Program is heavily inspired by DHI's proprietary plugin, called Mike 11 GIS and
+therefore mostly intended for Mike by DHI software users.
+
+
 
 By using script, you can create cross section profiles from different elevation sources:
 
-* Digital terrain models (DEMs)
+* Digital terrain models (DEM)
 * Terrestrial geodetic point surveying
 
-The following documentation will get you through the installation process and program usage.
+The following documentation will get you through the installation process and program usage:
 
 
 .. toctree::
@@ -27,7 +26,9 @@ The following documentation will get you through the installation process and pr
    :caption: Contents:
 
    installation
-   usage
-   tutorial
+   elements
+   creation-methods
+   saving-results
+   running-xsection
    about
 
