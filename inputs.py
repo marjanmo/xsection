@@ -1,15 +1,15 @@
 
 ####### INPUT PARAMETERS LIST #####################
 
-# 1. Creation method
-# 1. Specify the desired profile creation method! Possible options: [auto/lines/measurements]
-CREATION_METHOD = "auto"   #auto/lines/measurements
 
 # 2. RIVER SHAPEFILE
 # 2.1. Specify the location of the shapefile (*.shp!), representing your river branches:
 RIVER_SHP = "/home/marjan/arso/frisco/static/shp_source/Dragonja_reke_d96.shp"
 # 2.2. Specify the column name, containing the names of the rivers in river shapefiles!
 RIVERNAME_FIELD = "river"
+
+# 4.2. Specify the desired general direction of the increasing chainages (upstream or downstream)
+CHAINAGING_DIRECTION = "downstream"    #downstream/upstream
 
 # 3. DEM FILE
 # 3. Specify a .tiff DEM file covering the desired area! It is neccessary for the river directioning!
@@ -23,13 +23,14 @@ EMBANKMENTS_NAME_FIELD = "name"
 # Specify the desired point sampling density for all the cases when it's needed (embankments, profiles, rivers,...). Defaults to 1m:
 SAMPLING_DENSITY = 1
 
-# 4.2. Specify the desired general direction of the increasing chainages (upstream or downstream)
-CHAINAGING_DIRECTION = "downstream"    #downstream/upstream
-
-
 # 4. profile orientation and chainaging direction
 # 4.1. Specify the desired profile orientation. Defaults to left
 XSECTION_ORIENTATION = "left"    #left/right
+
+
+# 1. Creation method
+# 1. Specify the desired profile creation method! Possible options: [auto/lines/measurements]
+CREATION_METHOD = "auto"   #auto/lines/measurements
 
 
 #PICK ONLY ONE

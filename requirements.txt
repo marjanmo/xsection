@@ -1,0 +1,5 @@
+libgdal
+pandas
+geopandas
+natsort
+scipy
