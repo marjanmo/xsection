@@ -13,10 +13,10 @@ In order to clarify the key concepts and the terminology, used in this project, 
 elements. They are displayed on the picture below:
 
 
-.. figure:: img/concept_overview.png
+.. figure:: img/concept_overview2.png
    :align: center
 
-   All key input geometry elements in Xsection
+   All the key input geometry elements in Xsection
 
 
 .. note:: All the uppercase keywords highlighted like ``THIS`` are also input varibles parameters in program, so read carefully and
