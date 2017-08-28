@@ -1,6 +1,6 @@
-===============
-1. Installation
-===============
+=============
+Installation
+=============
 
 
 * Make sure you have ``conda`` installed and your system is ready to work with geospatial Python. In case you need help,
