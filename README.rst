@@ -1,6 +1,9 @@
 Xsection
 =======
 
+![xsection_logo](https://github.com/marjanmo/xsection/blob/master/docs/img/xsection-logo-blue.png)
+
+
 Xsection is a Python-written script for creating cross sectional river profiles, normally used in 1D hydraulic modelling.
 The program features:
    - vertex sampling of 2D shapefiles to pick their elevation values from underyling Digital Elevation Models (DEM)
@@ -15,7 +18,7 @@ The program features:
 Program is heavily inspired by DHI's proprietary plugin, called Mike 11 GIS and therefore mostly intended for Mike by
 DHI software users.
 
-For installation and usage guidelines, see http://xsection.readthedocs.io/en/latest/
+For installation and usage guidelines, see `the Official documentation <http://xsection.readthedocs.io/en/latest/>`__
 
 
 TODO:
