@@ -19,20 +19,18 @@ The program features:
   - profiles from a 3D geodetic suverying points in Shapefile
 
 
+
+How To:
+-------
+
 For installation and usage guidelines, see `the Official documentation <http://xsection.readthedocs.io/en/latest/>`__.
 
 
-TODO:
------
-
--  Conversion into a QGIS plugin
-
-Author
+To Do:
 ------
 
--  **Marjan Moderc**, ARSO, Slovenia -
-   `GitHub <https://github.com/marjanmo>`__
-
+-  Conversion into a QGIS plugin (GUI)
+-  EPSG projection equality checking
 
 License
 -------

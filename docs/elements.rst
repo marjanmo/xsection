@@ -67,7 +67,7 @@ This property specifies, how the points in cross section should be ordered. If "
 a cross section will lie on a "left" bank of the river, where "left" bank is defined as the bank that is on your left in
 a river's downstream local coordinate system. Or put shortly: a left side of the profile is also left side of the river,
 if one would look at the river from a boat going downstream.
-Another important attributes of a cross section profiles are of course it's linear referencing attributes.
+Another important attributes of a cross section profiles are of course it's linear referencing attributes:
 
 - a river that it belongs to
 - a chainage at which it is placed onto.
