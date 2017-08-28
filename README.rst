@@ -1,7 +1,8 @@
 Xsection
 =======
 
-![xsection_logo](https://github.com/marjanmo/xsection/blob/master/docs/img/xsection-logo-blue.png)
+.. figure:: docs/img/xsection-logo-blue.png
+   :align: center
 
 
 Xsection is a Python-written script for creating cross sectional river profiles, normally used in 1D hydraulic modelling.
