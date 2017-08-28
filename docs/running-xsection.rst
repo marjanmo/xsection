@@ -2,7 +2,7 @@
 Running Xsection
 ----------------
 
-A typical workflow for running Xsection looks like:
+A typical workflow for profile creation with Xsection looks like this:
 
 **1. Collecting and preparing DEM, rivers and embankments in GIS**
     - Creating a DEM file
@@ -12,7 +12,7 @@ A typical workflow for running Xsection looks like:
 
 **2. Collection and preparing cross sectional data in GIS**
 
-   This step depends on your chosen ``CREATION_METHOD``:
+    This step depends on your chosen ``CREATION_METHOD``:
     - Converting survey point data into a properly defined shapefile (LINES) or
     - Hand-drawing cross section lines in it's own shapefile (MEASUREMENTS) or
     - Thinking about the best ``PROFILE_WIDTH`` and ``PROFILE_DENSITY`` settings (AUTO)
@@ -29,12 +29,12 @@ A typical workflow for running Xsection looks like:
 
 **4. Running a script**
 
-Once you are happy with the input parameters in ``inputs.py` you are free to run Xsection. Remember to run it
-with a correct Python interpreter (= activate virtual environment)
+Once you are happy with the input parameters in ``inputs.py`` you are free to run Xsection. Remember to run it
+with a correct Python interpreter (= activate virtual environment)!
 
 ::
 
-    cd *xsection_root_directory*
+    cd xsection_root_dir
     activate xsection               #(or source activate xsection  on Linux)
     python xsection.py
 
@@ -42,7 +42,7 @@ with a correct Python interpreter (= activate virtual environment)
 
 **5. Check for any error messages in terminal or in log.txt**
 
-   Xsection will error-check your input parameters and will complain in case of any illogical choices, such as:
+    Xsection will error-check your input parameters and will complain in case of any illogical choices, such as:
     - wrong data types (e.g. not using .tif or .shp format as an input or output file)
     - wrong Shapefile types (e.g. LineString when it should be a Point)
     - non-existing files or shapefile fields

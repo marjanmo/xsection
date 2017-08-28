@@ -1,9 +1,9 @@
-------------------------------
-Cross section creation methods
-------------------------------
+--------------------------
+Profile generation methods
+--------------------------
 
-While specifying the input parameters for cross sections in ``inputs.py``, user will be asked to choose the desired ``CREATION_METHOD``.
-There are 3 different profile creation options (or methods) to choose from:
+Before even starting a Xsection, you have to know, what ``CREATION_METHOD`` would you like to use for profile generation.
+There are 3 available profile creation options (or methods) to choose from:
 
    - :ref:`AUTO<auto>`: automatic profile generation based on generic parameters and DEM values.
 
@@ -32,15 +32,15 @@ to the specified creation parameters:
 All profiles are generated perpendicular to the river line, starting almost at the beggining of the river, ending almost
 at the end of the river and with an evenly spaced linear distance from each other.
 
-.. warning:: Mind that such a mindless cross section generation comes with a (besides poorly defined river geometry) a very probable breaking
-             of the "only one river at one point" rule, especially with very dense placement on wide profiles on a very curvy river
-             stream lines. All cross sections with ambiguous chainage definition get assigned a chainage 0.
-
-
 .. figure:: img/auto_creation_overview.png
    :align: center
 
    Parameters, required for a fully automatic profile generation
+
+
+.. warning:: Mind that such a mindless cross section generation comes with a (besides poorly defined river geometry) a very probable breaking
+             of the "only one river at one point" rule, especially with very dense placement on wide profiles on a very curvy river
+             stream lines. All cross sections with ambiguous chainage definition get assigned a chainage 0.
 
 
 .. _lines:
@@ -48,11 +48,11 @@ at the end of the river and with an evenly spaced linear distance from each othe
 LINES
 -----
 
-This creation option requires an existing Line shapefile which previously (possibly manually) generated cross section
+This creation option requires an existing Line Shapefile with possibly manually created cross section
 locations. This option gives you more freedom and accuracy in catching the hydraulic situation of the terrain, compared
 to "auto" cration method. You can use QGIS to carefully place every single cross section at the exact location that you
 find important for the performance of your model, as well enables you to avoid cris-crossing of the profiles. Profile 
-names will be automatically generated.
+names will be automatically generated. Mind the "only one river at one point" rule!
 
 
 .. _measurements:
@@ -60,9 +60,9 @@ names will be automatically generated.
 MEASUREMENTS
 ------------
 
-This creation options a bit specific as it is the only one that doesn't include gathering elevation data from DEM.
-It is actually more of a parser of the geodetic survey points, passed to a program in a form of a point shapefile
-``XSECTION_SHP``. Therefore the shapefile requires quite a rigid structure to ensure points get parsed correctly.
+This creation options is a bit specific as it is the only one that doesn't include gathering elevation data from DEM.
+It actually servers as a parser of the geodetic survey points, passed to a program in a form of a point shapefile
+``XSECTION_SHP``. Therefore the Shapefile requires quite a rigid structure to ensure points get parsed correctly.
 Let's see the required parameters:
 
 - ``XSECTION_PROFILE_ID_FIELD`` is a shapefile field, containing a name of the profile that certain point belongs to.
