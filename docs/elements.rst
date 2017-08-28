@@ -72,7 +72,7 @@ Another important attributes of a cross section profiles are of course it's line
 - a river that it belongs to
 - a chainage at which it is placed onto.
 
-They get set automatically as the program is run:
+They get set automatically as the program is run.
 
 .. note:: Each cross section must have one (and only one!) crossing point with one (and only one!) river. That is the
          only way to ensure a proper profile attributes, such as river, chainaging and orientation.
