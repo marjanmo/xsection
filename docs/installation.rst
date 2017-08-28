@@ -32,12 +32,6 @@ Installation
     python xsection.py
 
 
-.. note:: At this project stage, Xsection is only available as a command
-          line script, so in order to properly visualize as well as modify the input and output data, it is mandatory to work
-          with a decent GIS software. I strongly suggest installing `QGIS`_ as it is a very intuitive open-source alternative to
-          proprietary GIS tools.
-
-.. _QGIS: http://www.qgis.org/en/site/forusers/download.html
 
 
 

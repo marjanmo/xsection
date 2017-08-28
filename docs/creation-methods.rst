@@ -17,7 +17,7 @@ Each creation method requires a different set of input parameters. Below we disc
 
 .. _auto:
 
-auto
+AUTO
 ----
 
 This is the simplest available profile creation method, as it doesn't require any existing point measurements or
@@ -45,7 +45,7 @@ at the end of the river and with an evenly spaced linear distance from each othe
 
 .. _lines:
 
-lines
+LINES
 -----
 
 This creation option requires an existing Line shapefile which previously (possibly manually) generated cross section
@@ -57,7 +57,7 @@ names will be automatically generated.
 
 .. _measurements:
 
-measurements
+MEASUREMENTS
 ------------
 
 This creation options a bit specific as it is the only one that doesn't include gathering elevation data from DEM.
@@ -65,7 +65,7 @@ It is actually more of a parser of the geodetic survey points, passed to a progr
 ``XSECTION_SHP``. Therefore the shapefile requires quite a rigid structure to ensure points get parsed correctly.
 Let's see the required parameters:
 
-- ``xsection_profile_id_field`` is a shapefile field, containing a name of the profile that certain point belongs to.
+- ``XSECTION_PROFILE_ID_FIELD`` is a shapefile field, containing a name of the profile that certain point belongs to.
 
 - ``SECTION_POINT_ID_FIELD`` is a shapefile field, contaning a consecutive number (order) of the certain point within a profile.
 
