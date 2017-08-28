@@ -3,14 +3,14 @@
 Overview of key elements
 ------------------------
 
-.. note:: At this project stage, Xsection is only available as a command
-          line script, so in order to properly visualize as well as modify the input and output data, it is mandatory to work
-          with a decent GIS software. I strongly suggest using `QGIS`_ as it is a very intuitive open-source alternative to
-          proprietary GIS tools.
+.. warning:: All the math inside Xsection works in a cartesian coordinate system. Neither does Xsection perform any
+            reprojections or transformations of the input spatial data. Therefore is absolutely neccessary
+            for user to make sure that all data inputs (shapefiles, rasters,...) are in the **identical projected coordinate system!**.
+            Use QGIS or any other GIS tool to perform any reprojections of the input data with different spatial reference!
 
 
-In order to clarify the concepts and the terminology, used in this project, we will start with an overview of the key
-elements, that are being used in this project.
+In order to clarify the key concepts and the terminology, used in this project, we will start with an overview of the key
+elements. The picture below displays then all at once:
 
 
 .. figure:: img/concept_overview.png
@@ -73,11 +73,8 @@ Another important attributes of a cross section profiles are of course it linear
 
 
 
-.. warning:: All the math inside Xsection works in a cartesian coordinate system. Neither does Xsection perform any
-            reprojections or transformations of the input spatial data. Therefore is absolutely neccessary
-            for user to make sure that all data inputs (shapefiles, rasters,...) are in the **identical projected coordinate system!**.
-            Use QGIS or any other GIS tool to perform any reprojections of the input data with different spatial reference!
+.. figure:: img/settings.png
+   :align: center
 
+   Example of river with "left" ``PROFILE_ORIENTATION`` and "upstream" ``CHAINAGING_DIRECTION``
 
-
-.. _QGIS: http://www.qgis.org/en/site/forusers/download.html

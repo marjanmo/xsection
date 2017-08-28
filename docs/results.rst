@@ -1,6 +1,6 @@
-------------
-Result files
-------------
+---------------
+Program results
+---------------
 
 Once the program is run, it can output results in several different ways/format.
 

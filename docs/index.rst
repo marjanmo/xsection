@@ -6,6 +6,9 @@
 Welcome to Xsection documentation!
 ==================================
 
+.. figure:: img/xsection-logo.png
+   :align: center
+
 Xsection is a command line(ish) Python-written script for creation of important geometry data in 1D hydraulic modelling.
 Its most important result is a text file, containing cross sectional data in format, that is directly importable in
 Mike 11 by DHI cross section editor. Program is heavily inspired by DHI's proprietary plugin, called Mike 11 GIS and
@@ -28,7 +31,7 @@ The following documentation will get you through the installation process and pr
    installation
    elements
    creation-methods
-   saving-results
+   results
    running-xsection
    about
 

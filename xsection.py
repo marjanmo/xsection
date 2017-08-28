@@ -6,7 +6,10 @@ from _check_inputs import *
 logger = utils.create_logger()
 
 
-#todo: write rules oz link!
+#TODO: ENVIRONMENT.YML
+#TODO: TEST ON WINDOWS
+#TODO: README.md with picture
+#LOGO
 
 
 # Create a Rivers object and set a river direction
