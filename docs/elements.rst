@@ -1,11 +1,11 @@
 
-------------------------
-Overview of key elements
-------------------------
+----------------------------
+Overview of the key elements
+----------------------------
 
 .. warning:: All the math inside Xsection works in a cartesian coordinate system. Neither does Xsection perform any
             reprojections or transformations of the input spatial data. Therefore is absolutely neccessary
-            for user to make sure that all data inputs (shapefiles, rasters,...) are in the **identical projected coordinate system!**.
+            for user to make sure that all data inputs (shapefiles, rasters,...) are in the **identical projected coordinate system!**
             Use QGIS or any other GIS tool to perform any reprojections of the input data with different spatial reference!
 
 

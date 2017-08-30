@@ -25,7 +25,7 @@ A typical workflow for profile creation with Xsection looks like this:
    .. figure:: img/inputs.png
       :align: center
 
-   Think of ``inputs.py`` as an fill out form for the program
+      Think of ``inputs.py`` as an fill out form for the program
 
 **4. Running a script**
 
@@ -39,10 +39,10 @@ with a correct Python interpreter (= activate virtual environment)!
     python xsection.py
 
 
-
 **5. Check for any error messages in terminal or in log.txt**
 
-    Xsection will error-check your input parameters and will complain in case of any illogical choices, such as:
+Xsection will error-check your input parameters and will complain in case of any illogical choices, such as:
+
     - wrong data types (e.g. not using .tif or .shp format as an input or output file)
     - wrong Shapefile types (e.g. LineString when it should be a Point)
     - non-existing files or shapefile fields

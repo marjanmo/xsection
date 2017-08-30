@@ -11,7 +11,7 @@ README.md
 _build
 _static
 _templates
-
+__pycache__
 log.txt
 
 *_ready.txt

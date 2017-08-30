@@ -15,7 +15,7 @@ Installation
 
 ::
 
-    conda env create -n xsection -f environment.yml
+    conda create -n xsection -f environment.yml
 
 
 * Activate a freshly created dedicated virtual environment by ``source activate xsection`` (skip a word ``source`` on Windows).
