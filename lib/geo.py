@@ -593,8 +593,8 @@ class Cross_sections():
                 first_coordinate = df_profil.loc[df_profil.first_valid_index(), "geometry"]
                 last_coordinate = df_profil.loc[df_profil.last_valid_index(), "geometry"]
 
-                txt.write("{}\n".format(river.encode("utf-8")))  # NAME OF RIVER
-                txt.write("{}\n".format(river.encode("utf-8")))  # NAME OF RIVER SEGMENT (THE SAME!)
+                txt.write("{}\n".format(river))  # NAME OF RIVER
+                txt.write("{}\n".format(river))  # NAME OF RIVER SEGMENT (THE SAME!)
                 txt.write("               {}\n".format(round(float(chainage), 2)))  # CHAINAGE ON RIVER IN METERS
                 txt.write("COORDINATES\n")
                 txt.write("    2 {} {} {} {}\n".format(first_coordinate.x, first_coordinate.y, last_coordinate.x,

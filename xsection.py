@@ -84,4 +84,11 @@ if EMBANKMENTS_SHP:
         embankments.point_sample_line(interpolation_density=SAMPLING_DENSITY,dem_file=DEM_FILE)
         embankments.df_p.to_file(EMBANKMENTS_POINT_OUT_SHP)
 
-
+print("")
+print("###########################################################################")
+print("######### Xsection has finished sucessfully! Generated results are:")
+for i in [XNS11_OUT_TXT,RIVER_POINT_OUT_SHP,XSECTION_POINTS_OUT_SHP,XSECTION_LINES_OUT_SHP,EMBANKMENTS_POINT_OUT_SHP]:
+    if i:
+        print(i)
+print("###########################################################################")
+print("")

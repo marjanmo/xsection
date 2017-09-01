@@ -3,7 +3,8 @@ import geopandas as gpd
 import os
 
 
-print(" ")
+with open("docs/img/xsection_logo.txt","r") as f:
+    print(f.read())
 print("#################################################")
 print("################ WELCOME TO XSECTION ############")
 print("#################################################")
@@ -16,11 +17,8 @@ print("#################################################")
 print(" ")
 
 
-print("Make sure you that all the data source are in the same projected coordinate system!"
-      "\nIn order to keep program as lightweight as possible, coordinate reference cross checking is turned off!")
-print("Make sure you have read the manual in README file and you understand the meaning and options of the inputs you are going to specify!")
+print("Make sure you have read the manual (link in README file) and you understand the meaning and options of the inputs you are going to specify!")
 print("")
-
 
 
 #PERFORM ERROR CHECK OF THE INPUTS!
