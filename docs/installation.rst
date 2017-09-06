@@ -23,6 +23,7 @@ Installation
   See the above mentioned `walkthrough`_ (the **Geospatial Python libraries** part).
 
 * Install the required Python libraries (and its dependencies) with conda:
+
 ::
 
     conda install -c conda-forge geopandas natsort scipy

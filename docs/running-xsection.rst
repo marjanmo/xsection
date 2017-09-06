@@ -1,6 +1,6 @@
-----------------
-Running Xsection
-----------------
+---------------------
+Working with Xsection
+---------------------
 
 A typical workflow for profile creation with Xsection looks like this:
 
@@ -98,8 +98,8 @@ A typical workflow for profile creation with Xsection looks like this:
     EMBANKMENTS_POINT_OUT_SHP = "sample_data/Result_embankment_point.shp"
 
     # Specify the absolute path of the result XNS point(or lines) shapefile if you want it! (defaults to None)
-    XSECTION_POINTS_OUT_SHP = "sample_data/Result_profiles_points_points.shp"
-    XSECTION_LINES_OUT_SHP = "sample_data/Result_profiles_lines_points.shp"
+    XSECTION_POINTS_OUT_SHP = "sample_data/Result_profiles_points.shp"
+    XSECTION_LINES_OUT_SHP = "sample_data/Result_profiles_lines.shp"
 
     ####### END OF INPUT PARAMETERS LIST #####################
 
@@ -123,3 +123,5 @@ Xsection will error-check your input parameters and will complain in case of any
     - wrong Shapefile types (e.g. LineString when it should be a Point)
     - non-existing files or shapefile fields
     - ...
+
+

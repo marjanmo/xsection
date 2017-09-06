@@ -366,8 +366,6 @@ class Cross_sections():
 
             # pripravi vse xs v eni reki
             df_xs_river = self.df_l.ix[self.df_l[self.river_f] == river].sort_values(by=self.chainage_f)
-            print(river)
-            print(df_xs_river)
 
             id_list = range(self.naming_starting_number,
                             len(df_xs_river.index.tolist()) + self.naming_starting_number)

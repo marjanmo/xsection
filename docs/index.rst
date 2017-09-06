@@ -53,5 +53,6 @@ The following documentation will get you through the installation process and pr
    creation-methods
    results
    running-xsection
+   sample-demo
    about
 
