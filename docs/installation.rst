@@ -3,54 +3,33 @@ Installation
 =============
 
 
-* Make sure you have ``conda`` installed and your Python in virtual environment is ready to work with geospatial libraries.
-  If not sure, see a detailed instructions in this `walkthrough`_.
+* Make sure you have ``conda`` and system dependencies installed and your Python is properly set up.
+  If not sure, see a detailed instructions in this `walkthrough`_ (the **System requirements** part).
 
 
 * In your terminal, ``cd`` into a place where you want Xsection to reside and download the source code with ``git clone https://github.com/marjanmo/xsection.git`` or,
   if you don't have git, just manually download and extract the ZIP version of the code from the project's `github`_ page (green button!).
 
-* Create a new, dedicated virtual enviroment with conda:
+* Create a new, dedicated conda virtual enviroment, named *xsection*:
 
 ::
 
     conda create -n xsection python=3.5
 
 * Activate a freshly created dedicated virtual environment by ``source activate xsection`` (skip a word ``source`` on Windows).
-  This will add a ``(xsection)`` at the beginning of your command line, signalling that you are using this virtual env. Install
-  needed libraries:
+  This will add a ``(xsection)`` at the beginning of your command line, signalling that you are using this virtual env.
 
+* **ONLY FOR WINDOWS:** If you are using Windows, you will first have to install GDAL, Fiona and Shapely as a *.whl* file.
+  See the above mentioned `walkthrough`_ (the **Geospatial Python libraries** part).
+
+* Install the required Python libraries (and its dependencies) with conda:
 ::
 
     conda install -c conda-forge geopandas natsort scipy
 
 
-
-* Modify the ``inputs.py`` file in a project's root directory to populate set the input parameters. For more, see the docs.
-
-
-* Now you are free to run the script with with activated virtual environment:
-
-::
-
-    python xsection.py
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+The installation process itself should now be completed. For program usage, see the chapter **Running Xsection** of this
+documentation.
 
 
 

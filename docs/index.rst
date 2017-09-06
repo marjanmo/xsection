@@ -9,7 +9,7 @@ Welcome to Xsection documentation!
 Xsection is a Python-written script for creating cross sectional river profiles, normally used in 1D hydraulic modelling.
 
 
-.. figure:: img/xsection-workflow.png
+.. figure:: img/xsection-workflow2.png
    :align: center
 
    River cross section generation and chainaging made easy!
@@ -21,7 +21,7 @@ The program features:
 - parsing 3D terrestrial surveying 3D points into profiles
 - automatic setting of river direction and cross section orientation (no need for careful manual creation anymore!)
 - automatic calculation of the profile chainages according to the desired incrementation (upstream or downstream)
-- conversion of the results into ASCII version of the *XNS11* geometry file from **Mike11 by** software.
+- conversion of the results into ASCII version of the *XNS11* geometry file from **Mike11 by DHI** software.
 - different profile creation options:
 
    1. auto-generated profiles (based on DEM and input parameters)

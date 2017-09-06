@@ -125,7 +125,7 @@ class Cross_sections():
     point_id_f = "point_id"
     profile_id_f = "profile_id"
     xz_chainage_f = "abs_profil"
-    chainage_f = "stacionaza"
+    chainage_f = "chainage"
     orientation_f = "orient"
 
     round_decimals = 1
@@ -221,15 +221,20 @@ class Cross_sections():
         self.dem_file = dem_file
         self.interpolation_density = interpolation_density
 
+        # doloci stacionazo, ime reke in orientacijo profila
+        self.calculate_chainage_name_and_orientation()
+
         # Create point_shp from line_shp in
         self.df = Shp.lines_to_points(df_lines=self.df_l, interpolate=self.interpolation_density,
                                       point_id_f=self.point_id_f)
+
+
+
         # Sample dem raster file to pick up values!
         self.df = Shp.point_sampling_tool(df_points=self.df, src_raster=self.dem_file, dem_field=self.z_f,
                                           error_on_nan=False)
 
-        # doloci stacionazo, ime reke in orientacijo profila
-        self.calculate_chainage_name_and_orientation()
+
 
         # Ce slucajno ni imel profil_id iz prve, preimenuj profile
         if profile_id_f == None:
@@ -237,11 +242,11 @@ class Cross_sections():
 
         self.set_profile_orientation()
 
-    def populate_from_point_shp(self, df, profile_id_f, z_f):
+    def populate_from_point_shp(self, df, profile_id_f, point_id_f, z_f):
 
         # metoda, ki naredi class iz point shapefila, zraven pa naredi še line shapefile. Nujni podatki. shapefile,
 
-        if self.df is not None:
+        if isinstance(self.df, pd.DataFrame):
             raise Exception(
                 "df attribute is not empty, so It seems that a Cross section class is already populated from point_shp")
 
@@ -253,6 +258,7 @@ class Cross_sections():
 
         self.z_f = z_f
         self.profile_id_f = profile_id_f
+        self.point_id_f = point_id_f
 
         #sort points profile and point wise
         self.df = self.df.sort_values(by=[self.profile_id_f,self.point_id_f])
@@ -360,6 +366,8 @@ class Cross_sections():
 
             # pripravi vse xs v eni reki
             df_xs_river = self.df_l.ix[self.df_l[self.river_f] == river].sort_values(by=self.chainage_f)
+            print(river)
+            print(df_xs_river)
 
             id_list = range(self.naming_starting_number,
                             len(df_xs_river.index.tolist()) + self.naming_starting_number)
@@ -368,17 +376,17 @@ class Cross_sections():
                 id_list = id_list[::-1]
 
             if self.naming_prefix_length:
-                id_list = ["{prefix}{0:0{digits}}".format(i, prefix=river[:self.naming_prefix_length].upper(),
+                id_list = ["{prefix}_{0:0{digits}}".format(i, prefix=river.replace(" ","").replace("_","").upper(),
                                                           digits=self.naming_number_of_digits) for i in id_list]
 
             self.df_l.ix[self.df_l[self.river_f] == river, self.profile_id_f] = id_list
 
-            # Update point df too by merginf df_l and df
+        # Update point df too by merginf df_l and df
+        if isinstance(self.df, pd.DataFrame):
 
-            if self.df:
-                del self.df[self.profile_id_f]  # first delete old naming info
-                self.df = pd.merge(self.df, self.df_l[[self.river_f, self.chainage_f, self.profile_id_f]],
-                                   on=[self.river_f, self.chainage_f])
+            del self.df[self.profile_id_f]  # first delete old naming info
+            self.df = pd.merge(self.df, self.df_l[[self.river_f, self.chainage_f, self.profile_id_f]],
+                               on=[self.river_f, self.chainage_f])
 
     def calculate_chainage_name_and_orientation(self):
 
@@ -486,7 +494,7 @@ class Cross_sections():
         # round up chainage!
         self.df_l[self.chainage_f] = pd.to_numeric(self.df_l[self.chainage_f]).round(self.round_decimals)
         # apply those calculations (chainage, orientation and underlying river to the point_df too!
-        if self.df:
+        if self.df is not None:
             self.df = pd.merge(self.df, self.df_l[[self.chainage_f, self.orientation_f, self.river_f, self.profile_id_f]],
                                on=[self.profile_id_f])
 
@@ -582,10 +590,11 @@ class Cross_sections():
 
             for chainage in chainages:
                 # select only relevant points (tiste, ki imajo isti chainage - ne rabis vpletat ID, plus komplikacije pri vrstnem redu pridejo)
-                df_profil = self.df.ix[(self.df[self.river_f] == river) & (self.df[self.chainage_f] == chainage)]
+                df_profil = self.df.ix[(self.df[self.river_f] == river) & (self.df[self.chainage_f] == chainage)].reset_index()
 
                 points_in_profile = df_profil.index.tolist()
-                lowest_z = df_profil[self.z_f].min()  # you need it to assign value 2
+                lowest_z = float(df_profil[self.z_f].min())  # you need it to assign value 2
+
                 profile_id = df_profil[self.profile_id_f].values.tolist()[
                     0]  # kretenski nacin za dobit vrednost, ki je itak enaka posvod po izrezu
                 special_point_already_used = False  # flag, da ne naredi vec kot ene tocke 2!
@@ -620,7 +629,9 @@ class Cross_sections():
                         special_point = 1  # prva tocka ima 1
                     if i == len(points_in_profile) - 1:
                         special_point = 3  # zadnja tocka ima 3
-                    if z == lowest_z and not special_point_already_used:
+
+                    if z == lowest_z and special_point_already_used is False:
+
                         special_point_already_used = True
                         special_point = 2  # ce je najnizja, daj 0
 
@@ -1417,7 +1428,7 @@ class Shp():
 
     @staticmethod
     def xs_to_3D_kml(points_gdf, z_col, xs_epsg=3794, profile_id_field="profile_id",
-                     profile_chainage_field="stacionaza", extrude=0, outfile=None, false_height_m=30):
+                     profile_chainage_field="chainage", extrude=0, outfile=None, false_height_m=30):
 
         with open(outfile, "w") as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n')

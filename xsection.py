@@ -6,12 +6,6 @@ from _check_inputs import *
 logger = utils.create_logger()
 
 
-#TODO: ENVIRONMENT.YML
-#TODO: TEST ON WINDOWS
-#TODO: README.md with picture
-#LOGO
-
-
 # Create a Rivers object and set a river direction
 rivers = geo.Rivers(df=RIVER_SHP, name_f=RIVERNAME_FIELD)
 rivers.set_river_direction(dem_file=DEM_FILE, direction=CHAINAGING_DIRECTION)
@@ -37,13 +31,15 @@ if CREATION_METHOD == "auto":
                                      interpolation_density=SAMPLING_DENSITY)
 
 elif CREATION_METHOD == "measurements":
-
         # Populate xs data from line_shp (it will perform all calculations while initializing already...)
-        xsections.populate_from_point_shp(df=XSECTION_SHP, profile_id_f=XSECTION_PROFILE_ID_FIELD, z_f=Z_FIELD)
+        xsections.populate_from_point_shp(df=XSECTION_SHP,
+                                          profile_id_f=XSECTION_PROFILE_ID_FIELD,
+                                          z_f=Z_FIELD,
+                                          point_id_f=XSECTION_POINT_ID_FIELD)
 
 elif CREATION_METHOD == "lines":
         # Populate xs data from line_shp (it will perform all calculations while initializing already...)
-        xsections.populate_from_line_shp(df_l=XSECTION_SHP, profile_id_f=XSECTION_PROFILE_ID_FIELD)
+        xsections.populate_from_line_shp(df_l=XSECTION_SHP, profile_id_f=XSECTION_PROFILE_ID_FIELD,dem_file=DEM_FILE)
 
 
 # Calculate internal xz chainages per profile (for xns11_file)
