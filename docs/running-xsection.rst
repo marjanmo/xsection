@@ -11,8 +11,8 @@ A typical workflow for profile creation with Xsection looks like this:
       (hint: WGS84 is **NOT** a projected coordinate system!)
 
 **2. Collection and preparing cross sectional data in GIS**
-
     This step depends on your chosen ``CREATION_METHOD``:
+
     - Converting survey point data into a properly defined shapefile (LINES) or
     - Hand-drawing cross section lines in it's own shapefile (MEASUREMENTS) or
     - Thinking about the best ``PROFILE_WIDTH`` and ``PROFILE_DENSITY`` settings (AUTO)
