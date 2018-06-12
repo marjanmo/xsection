@@ -228,12 +228,9 @@ class Cross_sections():
         self.df = Shp.lines_to_points(df_lines=self.df_l, interpolate=self.interpolation_density,
                                       point_id_f=self.point_id_f)
 
-
-
         # Sample dem raster file to pick up values!
         self.df = Shp.point_sampling_tool(df_points=self.df, src_raster=self.dem_file, dem_field=self.z_f,
                                           error_on_nan=False)
-
 
 
         # Ce slucajno ni imel profil_id iz prve, preimenuj profile
@@ -241,6 +238,8 @@ class Cross_sections():
             self.rename_xsection_ids()
 
         self.set_profile_orientation()
+
+
 
     def populate_from_point_shp(self, df, profile_id_f, point_id_f, z_f):
 
@@ -447,9 +446,9 @@ class Cross_sections():
                 riverline_downstream = LineString(riverline.coords[::-1])
             else:
                 riverline_downstream = riverline
-            #
-            # print("River: {}, Orientation: {}, Chainaging_direction: {}, prva tocka: {}".format(river.encode("utf-8"),self.df_r.orientation,chainaging_direction,riverline_chainage.coords[0])))
-            #
+
+            print("River: {}, Orientation: {}, Chainaging_direction: {}, "
+                  "prva tocka: {}".format(river.encode("utf-8"),self.df_r.direction,self.chainaging_direction,riverline_chainage.coords[0]))
 
             # pripravi vse xs v eni reki
             df_xs_river = self.df_l.ix[self.df_l[self.river_f] == river]
@@ -491,6 +490,8 @@ class Cross_sections():
 
         # round up chainage!
         self.df_l[self.chainage_f] = pd.to_numeric(self.df_l[self.chainage_f]).round(self.round_decimals)
+
+
         # apply those calculations (chainage, orientation and underlying river to the point_df too!
         if self.df is not None:
             self.df = pd.merge(self.df, self.df_l[[self.chainage_f, self.orientation_f, self.river_f, self.profile_id_f]],
@@ -543,6 +544,7 @@ class Cross_sections():
 
         # naredi nov output file za preurejene tocke
         df_new = gpd.GeoDataFrame(columns=self.df.columns,crs=self.df_r.df.crs)
+
         # SEDAJ IMAS ZRIHTANE DUMMY DF_XSECTIONS, ZATO LAHKO PREKOPIRAS LASTNOSTI V XS_POINTS TER OBRNES VSE TISTE, KI NISO V REDU
         for id in self.df_l.index:
 
@@ -555,6 +557,9 @@ class Cross_sections():
             if orientation != self.profile_orientation:
                 df_profil = df_profil.iloc[
                             ::-1]  # http://stackoverflow.com/questions/20444087/right-way-to-reverse-pandas-dataframe
+
+                #Zamenjal si polozaj tock, sedaj pa se njihovo ime, da bo 0 tam, kjer hoces zacetek.
+                df_profil[self.point_id_f] = list(range(len(df_profil.index)))
 
             # append profile to the master points df
             df_new = df_new.append(df_profil)
@@ -744,7 +749,8 @@ class Points():
     def find_underlying_polygon(points, df_polygon, polygon_name_field):
 
         """
-        Function returns array with the name of the underlying polygon for every given point in the list, and np.NaN for every mismatch
+        Function returns array with the name of the underlying polygon for every given point in the list, and np.NaN for
+        every mismatch
         :param points:
         :param df_polygon:
         :param polygon_name_field:
@@ -779,7 +785,6 @@ class Points():
         if len(results) == 1:
             results = results[0]
         return results
-
 
     @staticmethod
     def closest_element_to_given_points_KDTree(points, df_reference_points, name_field):
@@ -824,7 +829,6 @@ class Points():
         elif len(results) == 0:
             results = None
         return results
-
 
     @staticmethod
     def closest_element_to_given_points(points, shapefile, name_field):

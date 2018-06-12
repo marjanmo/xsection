@@ -1,4 +1,4 @@
-from inputs import *
+from icmank_inputs import *
 import geopandas as gpd
 import os
 
