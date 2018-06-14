@@ -37,13 +37,17 @@ elif CREATION_METHOD == "measurements":
                                           z_f=Z_FIELD,
                                           point_id_f=XSECTION_POINT_ID_FIELD)
 
+
 elif CREATION_METHOD == "lines":
         # Populate xs data from line_shp (it will perform all calculations while initializing already...)
         xsections.populate_from_line_shp(df_l=XSECTION_SHP, profile_id_f=XSECTION_PROFILE_ID_FIELD,dem_file=DEM_FILE)
 
 
+xsections.df.to_file(XSECTION_POINTS_OUT_SHP)
+
+
 # Calculate internal xz chainages per profile (for xns11_file)
-xsections.calculate_internal_xz_chainages()
+xsections.calculate_internal_xz_chainages(from_centre=CENTRAL_XSECTION_XZ_CHAINAGE)
 
 
 

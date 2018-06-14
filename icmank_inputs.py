@@ -2,7 +2,7 @@
 
 # RIVER SHAPEFILE
 # Specify the location of the shapefile (*.shp!), representing your river branches:
-RIVER_SHP = "/home/marjan/projects/matej/icmank/struga.shp"
+RIVER_SHP = "/home/marjan/projects/matej/icmank/struga_d48.shp"
 # Specify the column name, containing the names of the rivers in river shapefiles!
 RIVERNAME_FIELD = "Text"
 
@@ -11,7 +11,7 @@ CHAINAGING_DIRECTION = "upstream"    #downstream/upstream
 
 # DEM FILE
 # Specify a .tiff DEM file covering the desired area! It is neccessary for the river directioning!
-DEM_FILE = "/media/marjan/Delo/DMR_IZSEKI/Icmank/Icmank_1m.tif"
+DEM_FILE = "/media/marjan/Delo/DMR_IZSEKI/Icmank/Icmank_10m.tif"
 
 # EMBANKMENTS
 # Optional shapefile for any additional lines that you would like to have point sampled (result will be point file)
@@ -26,9 +26,12 @@ SAMPLING_DENSITY = 1
 # Specify the desired profile orientation. Defaults to left
 XSECTION_ORIENTATION = "left"    #left/right
 
+# Specify internal chainage. If internal chainage should be calculated from centre or from frist point
+CENTRAL_XSECTION_XZ_CHAINAGE = True
+
 # Creation method
 # Specify the desired profile creation method! Possible options: [auto/lines/measurements] --> see manual for more!
-CREATION_METHOD = "lines"   #auto/lines/measurements
+CREATION_METHOD = "measurements"   #auto/lines/measurements
 
 # PICK ONLY ONE!
 if CREATION_METHOD == "auto":
@@ -49,13 +52,13 @@ if CREATION_METHOD == "lines":
 
 if CREATION_METHOD == "measurements":
     # Specify the location of the Point shapefile (*.shp!), representing locations of the profile measurements.
-    XSECTION_SHP = "sample_data/Geodetic_survey_sample.shp"
+    XSECTION_SHP = "/home/marjan/projects/matej/icmank/icmank_tocke_z_visino.shp"
 
     # Specify the column name, containing the names of the profiles in cross section shapefiles.
     XSECTION_PROFILE_ID_FIELD = "profile_id"
 
     # Specify the column name, containing the consecutive number of the points within the same profile
-    XSECTION_POINT_ID_FIELD = "id"
+    XSECTION_POINT_ID_FIELD = "orig_ogc_f"
 
     # Specify the column name, containing the height of the measured point
     Z_FIELD= "z"
@@ -71,7 +74,7 @@ RIVER_POINT_OUT_SHP = "/home/marjan/projects/matej/icmank/icmank_river_point.shp
 EMBANKMENTS_POINT_OUT_SHP = None
 
 # Specify the absolute path of the result XNS point(or lines) shapefile if you want it! (defaults to None)
-XSECTION_POINTS_OUT_SHP = "/home/marjan/projects/matej/icmank/icmank_profiles_points_points.shp"
-XSECTION_LINES_OUT_SHP = "/home/marjan/projects/matej/icmank/icmank_profiles_lines_points.shp"
+XSECTION_POINTS_OUT_SHP = "/home/marjan/projects/matej/icmank/icmank_profiles_points.shp"
+XSECTION_LINES_OUT_SHP = "/home/marjan/projects/matej/icmank/icmank_profiles_lines.shp"
 
 ####### END OF INPUT PARAMETERS LIST #####################

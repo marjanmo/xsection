@@ -26,6 +26,9 @@ SAMPLING_DENSITY = 1
 # Specify the desired profile orientation. Defaults to left
 XSECTION_ORIENTATION = "left"    #left/right
 
+# Specify internal chainage. If internal chainage should be calculated from centre or from frist point
+CENTRAL_XSECTION_XZ_CHAINAGE = True
+
 # Creation method
 # Specify the desired profile creation method! Possible options: [auto/lines/measurements] --> see manual for more!
 CREATION_METHOD = "lines"   #auto/lines/measurements

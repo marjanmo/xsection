@@ -128,7 +128,7 @@ class Cross_sections():
     chainage_f = "chainage"
     orientation_f = "orient"
 
-    round_decimals = 1
+    round_decimals = 2
 
     naming_number_of_digits = 3
     naming_starting_number = 1
@@ -255,8 +255,13 @@ class Cross_sections():
         else:
             self.df = df
 
+        #Ce point_id ni podan, ga naredi, pac randomly poimenuj tocke v profilu. Profile id pa mora bit!
+        if point_id_f is None:
+            self.df[self.point_id_f] = range(len(self.df.index))
+        else:
+            self.profile_id_f = profile_id_f
+
         self.z_f = z_f
-        self.profile_id_f = profile_id_f
         self.point_id_f = point_id_f
 
         #sort points profile and point wise
@@ -497,7 +502,7 @@ class Cross_sections():
             self.df = pd.merge(self.df, self.df_l[[self.chainage_f, self.orientation_f, self.river_f, self.profile_id_f]],
                                on=[self.profile_id_f])
 
-    def calculate_internal_xz_chainages(self):
+    def calculate_internal_xz_chainages(self, from_centre=False):
 
         '''
         Funkcija vzame point shapefile s kategoriziranimi tockami, kjer vsaka pripada dolocenemu profilu (liniji) in dolocenemu obmocju (npr. Reki).
@@ -516,6 +521,8 @@ class Cross_sections():
         # create new fields to fill them up
         self.df.loc[:, self.xz_chainage_f] = None
 
+        print(self.df)
+
         # read point separetely groupwise
         for group in list(set(self.df[self.river_f].values.tolist())):  # unikatni
             df_group = self.df[self.df[self.river_f] == group]
@@ -526,13 +533,22 @@ class Cross_sections():
 
             # Sicer pa loopas se po profilih (Id vsake reke)
             else:
+                print(group)
+                if from_centre:
+                    #river_geom = self.df_r.df.loc[self.df_r.df[self.river_f] == group, "geometry"].values.tolist()[0]
+                    #print(river_geom)
+                    river_geom = self.df_r.df.loc[self.df_r.df[self.river_f] == group, "geometry"].iloc[0]
+                else:
+                    river_geom = None
+
                 for id in list(set(df_group[self.profile_id_f].values.tolist())):  # unikatni id
                     df_id = df_group.ix[df_group[self.profile_id_f] == id]
                     self.df.ix[(self.df[self.river_f] == group) & (
-                    self.df[self.profile_id_f] == id), self.xz_chainage_f] = Shp.calculate_chainages(df_id)
+                    self.df[self.profile_id_f] == id), self.xz_chainage_f] = Shp.calculate_chainages(df_id,river_geom)
 
         # zaokrozi izracunane fielde
         self.df.loc[:, self.xz_chainage_f] = pd.to_numeric(self.df[self.xz_chainage_f]).round(self.round_decimals)
+
 
     def set_profile_orientation(self):
         # Funkcija za podane.
@@ -1080,21 +1096,34 @@ class Shp():
         return gpd.GeoDataFrame(df,crs="+init=epsg:{}".format(epsg))
 
     @staticmethod
-    def calculate_chainages(df):
+    def calculate_chainages(df, river_geom=None):
         "Calculates cumsum distance between the points in a given dataframe. No grouping by default, has to be done before calling a function"
+        "Ce podas geometrijo reke, bo sklepal, da hoces razdaljo od sredine, sicer pa samo interni izracun narediš."
+        print(river_geom)
+        if river_geom == None:
+            # caluclate distance to the previous point
+            df.loc[:, "_x"] = df.geometry.apply(lambda p: p.x)
+            df.loc[:, "_y"] = df.geometry.apply(lambda p: p.y)
+            df.loc[:, "x2+y2"] = (df["_x"].diff() ** 2 + df["_y"].diff() ** 2)
+            df.loc[:, "x2+y2"] = df["x2+y2"].fillna(0)
+            df.loc[:, "_ch_rel"] = df["x2+y2"].apply(lambda x: math.sqrt(x))  # calculate relative distance between points
+            df.loc[:, "_ch_rel"].fillna(0, inplace=True)  # zamenjaj nan z 0
 
-        # caluclate distance to the previous point
-        df.loc[:, "_x"] = df.geometry.apply(lambda p: p.x)
-        df.loc[:, "_y"] = df.geometry.apply(lambda p: p.y)
-        df.loc[:, "x2+y2"] = (df["_x"].diff() ** 2 + df["_y"].diff() ** 2)
-        df.loc[:, "x2+y2"] = df["x2+y2"].fillna(0)
-        df.loc[:, "_ch_rel"] = df["x2+y2"].apply(lambda x: math.sqrt(x))  # calculate relative distance between points
-        df.loc[:, "_ch_rel"].fillna(0, inplace=True)  # zamenjaj nan z 0
+            # calculate cumulative summary (stacionaza)
+            df.loc[:, "_ch_abs"] = df["_ch_rel"].cumsum()
 
-        # calculate cumulative summary (stacionaza)
-        df.loc[:, "_ch_abs"] = df["_ch_rel"].cumsum()
+            return df["_ch_abs"]
 
-        return df["_ch_abs"]
+        else:
+
+            df["_ch_abs"]=None
+
+            profile_geom = LineString([df["geometry"].iloc[0],df["geometry"].iloc[-1]])
+            middle_point = profile_geom.intersection(river_geom)
+            for i in df.index:
+                df.loc[i,"_ch_abs"]=df.loc[i,"geometry"].distance(middle_point)
+
+            return df["_ch_abs"]
 
     @staticmethod
     def save_to_shapefile_with_prj(geo_df, file_out, epsg, encoding="utf-8"):
