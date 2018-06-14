@@ -77,4 +77,6 @@ EMBANKMENTS_POINT_OUT_SHP = None
 XSECTION_POINTS_OUT_SHP = "/home/marjan/projects/matej/icmank/icmank_profiles_points.shp"
 XSECTION_LINES_OUT_SHP = "/home/marjan/projects/matej/icmank/icmank_profiles_lines.shp"
 
+PROFILES_DXF = "/home/marjan/projects/matej/icmank/icmank_profile.dxf"
+
 ####### END OF INPUT PARAMETERS LIST #####################

@@ -13,6 +13,7 @@ from scipy import stats, spatial
 import math
 from natsort import natsorted
 from math import sin, cos, radians, pi
+from dxfwrite import DXFEngine as dxf
 
 logger = logging.getLogger('root')  # default logger object to write all messages into
 
@@ -124,7 +125,9 @@ class Cross_sections():
     river_f = "river"
     point_id_f = "point_id"
     profile_id_f = "profile_id"
-    xz_chainage_f = "abs_profil"
+    xz_abs_chainage_f = "abs_profil"
+    xz_central_chainage_f = "cen_profil"
+    rel_z_f = "rel_z" #visina tock glede na najnizno tocko.
     chainage_f = "chainage"
     orientation_f = "orient"
 
@@ -507,7 +510,7 @@ class Cross_sections():
         '''
         Funkcija vzame point shapefile s kategoriziranimi tockami, kjer vsaka pripada dolocenemu profilu (liniji) in dolocenemu obmocju (npr. Reki).
         Za vsako kombinacijo teh tock izracuna razdaljo med tocakmi in stacionaze. Oboje  zapise v podan field in izvrze nov fajl
-        POMEMBNO: CE HOCES POINT SAMPLAT VZDOLZNO OS REK, MORAS DAT OBVEZNO ID_FIELD=NONE
+        POMEMBNO: CE HOCES POINT SAMPLAT VZDOLZNO OS REK, MORAS DAT OBVEZNO ID_FIELD=NONE in from_centre = False
         :param point_shp:
         :param group_field:
         :param id_field:
@@ -518,10 +521,15 @@ class Cross_sections():
 
         logger.info("Calculating internal profile chainages  ...")
 
-        # create new fields to fill them up
-        self.df.loc[:, self.xz_chainage_f] = None
+        #doloci, kako se bo imenoval field
+        if from_centre:
+            xz_f = self.xz_central_chainage_f
 
-        print(self.df)
+        else:
+            xz_f = self.xz_abs_chainage_f
+
+        # create new fields to fill them up
+        self.df.loc[:, xz_f] = None
 
         # read point separetely groupwise
         for group in list(set(self.df[self.river_f].values.tolist())):  # unikatni
@@ -529,11 +537,12 @@ class Cross_sections():
             df_group.is_copy = False  # avoid SettingWithCopyWarning (http://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas)
             # Ce ni podan ID_FIELD, sklepas, da gre za vzdolzne profile, kjer grupiras samo po reki, ne pa tudi po profilih.
             if self.profile_id_f == None:
-                self.df.ix[self.df[self.river_f] == group, self.xz_chainage_f] = Shp.calculate_chainages(df_group)
+                self.df.ix[self.df[self.river_f] == group, xz_f] = Shp.calculate_chainages(df_group)
+
+                self.df.ix[self.df[self.river_f]==group,self.rel_z_f] = df_group[self.z_f]-df_group[self.z_f].min()
 
             # Sicer pa loopas se po profilih (Id vsake reke)
             else:
-                print(group)
                 if from_centre:
                     #river_geom = self.df_r.df.loc[self.df_r.df[self.river_f] == group, "geometry"].values.tolist()[0]
                     #print(river_geom)
@@ -542,13 +551,17 @@ class Cross_sections():
                     river_geom = None
 
                 for id in list(set(df_group[self.profile_id_f].values.tolist())):  # unikatni id
+                    #Izracunaj horizontalne visine
                     df_id = df_group.ix[df_group[self.profile_id_f] == id]
                     self.df.ix[(self.df[self.river_f] == group) & (
-                    self.df[self.profile_id_f] == id), self.xz_chainage_f] = Shp.calculate_chainages(df_id,river_geom)
+                    self.df[self.profile_id_f] == id), xz_f] = Shp.calculate_chainages(df_id,river_geom)
+
+                    #izracunaj relativno visino
+                    self.df.ix[(self.df[self.river_f] == group) & (
+                    self.df[self.profile_id_f] == id), self.rel_z_f] = df_id[self.z_f]-df_id[self.z_f].min()
 
         # zaokrozi izracunane fielde
-        self.df.loc[:, self.xz_chainage_f] = pd.to_numeric(self.df[self.xz_chainage_f]).round(self.round_decimals)
-
+        self.df.loc[:, xz_f] = pd.to_numeric(self.df[xz_f]).round(self.round_decimals)
 
     def set_profile_orientation(self):
         # Funkcija za podane.
@@ -584,6 +597,84 @@ class Cross_sections():
         # Update stara, nepravilno obrnjena point_df(df) in line_df (df_l)
         self.df = df_new
         self.df_l = Shp.points_to_lines(self.df, groupby=self.profile_id_f)
+
+    def export_profiles_to_dxf(self, dxf_file="test.dxf"):
+
+        logger.info("Generating AutoCAD style profile graphics... ")
+
+        DISTANCE_BETWEEN_PROFILES_Z = 20
+        DISTANCE_BETWEEN_PROFILES_X = 20
+        BOX_BUFFER = 10
+        TEXTBOX_ROW_HEIGHT = 1
+        MAX_NUMBER_OF_PROFILES_IN_LINE = 6
+        GLOBAL_X0 = 0
+        GLOBAL_Z0 = 0
+        PROFILE_Z_SHIFT = 5
+        COLUMNS_TO_LABEL = ["z","abs_profil","cen_profil"]
+        TEXTBOX_HEIGHT = len(COLUMNS_TO_LABEL)*TEXTBOX_ROW_HEIGHT
+
+        if not self.xz_abs_chainage_f in self.df.columns:
+            raise IOError(
+                "Cross section object doesn't have xz_abs_chainge field assigned yet. "
+                "Make sure to run 'calculate_internal_chainages' method first!")
+
+        if not self.xz_central_chainage_f in self.df.columns:
+            raise IOError(
+                "Cross section object doesn't have xz_cen_chainge field assigned yet. "
+                "Make sure to run 'calculate_internal_chainages' method first with central = True!")
+
+        #Doloci, koliko siroke profile bos delal.
+        PROFILE_BOX_WIDTH = int(self.df[self.xz_abs_chainage_f].max()) + BOX_BUFFER
+        PROFILE_BOX_HEIGHT = int(self.df[self.rel_z_f].max()) + BOX_BUFFER + PROFILE_Z_SHIFT + TEXTBOX_HEIGHT
+
+        profile_in_line = 1
+
+        x0 = GLOBAL_X0
+        z0 = GLOBAL_Z0
+
+        #Ustvari dxf object
+        drawing = dxf.drawing(dxf_file)
+        drawing.add_layer('PROFILE', color=0)
+        drawing.add_layer('PROFILE_VERT', color=1)
+        drawing.add_layer('PROFILE_TEXT', color=0)
+        drawing.add_layer('PROFILE_CHAINAGE', color=0)
+        drawing.add_layer('BOX', color=0)
+        drawing.add_layer('BOX_TEXT', color=0)
+
+        drawing.add(dxf.line((0, 0), (10, 0), color=7))
+        drawing.add(dxf.text('Test', insert=(0, 0.2), layer='TEXTLAYER'))
+
+
+        for group in self.df[self.profile_id_f].unique():
+            #ponastavi stevce za novo vrstico
+            if profile_in_line > 6:
+                profile_in_line = 1
+                x0 -= GLOBAL_X0
+                z0 -= PROFILE_BOX_HEIGHT
+
+            df_id = self.df[self.df[self.profile_id_f] == group]
+
+
+
+            # PROFIL
+            x = df_id[self.xz_abs_chainage_f].values.tolist()
+            z = df_id[self.rel_z_f].values.tolist()
+            x = [x0 + i for i in x]
+            z = [z0 + PROFILE_Z_SHIFT + TEXTBOX_HEIGHT + i for i in z]
+            profile = tuple(zip(x,z))
+            drawing.add(dxf.polyline(profile,layer="PROFILE"))
+
+            for point in profile:
+                drawing.add(dxf.line(start=point,end=(point[0],z0+TEXTBOX_HEIGHT),layer="PROFILE_VERT"))
+
+
+            #Premakni cager za naslednji profil
+            profile_in_line += 1
+            x0 += PROFILE_BOX_WIDTH
+
+        #Shrani
+        drawing.save()
+
 
 
     def export_to_xns11_file(self, xns11_file):
@@ -640,7 +731,7 @@ class Cross_sections():
 
                 for i, index in enumerate(points_in_profile):
 
-                    x = df_profil.ix[index, self.xz_chainage_f]
+                    x = df_profil.ix[index, self.xz_abs_chainage_f]
                     z = df_profil.ix[index, self.z_f]
                     special_point = 0
 
@@ -1099,7 +1190,7 @@ class Shp():
     def calculate_chainages(df, river_geom=None):
         "Calculates cumsum distance between the points in a given dataframe. No grouping by default, has to be done before calling a function"
         "Ce podas geometrijo reke, bo sklepal, da hoces razdaljo od sredine, sicer pa samo interni izracun narediš."
-        print(river_geom)
+
         if river_geom == None:
             # caluclate distance to the previous point
             df.loc[:, "_x"] = df.geometry.apply(lambda p: p.x)
@@ -1115,7 +1206,6 @@ class Shp():
             return df["_ch_abs"]
 
         else:
-
             df["_ch_abs"]=None
 
             profile_geom = LineString([df["geometry"].iloc[0],df["geometry"].iloc[-1]])

@@ -47,7 +47,10 @@ xsections.df.to_file(XSECTION_POINTS_OUT_SHP)
 
 
 # Calculate internal xz chainages per profile (for xns11_file)
-xsections.calculate_internal_xz_chainages(from_centre=CENTRAL_XSECTION_XZ_CHAINAGE)
+xsections.calculate_internal_xz_chainages(from_centre=False)
+
+#Calculate internal xz chainage per profile from centre
+xsections.calculate_internal_xz_chainages(from_centre=True)
 
 
 
@@ -83,6 +86,9 @@ if EMBANKMENTS_SHP:
     if EMBANKMENTS_POINT_OUT_SHP:
         embankments.point_sample_line(interpolation_density=SAMPLING_DENSITY,dem_file=DEM_FILE)
         embankments.df_p.to_file(EMBANKMENTS_POINT_OUT_SHP)
+
+if PROFILES_DXF:
+    xsections.export_profiles_to_dxf(PROFILES_DXF)
 
 print("")
 print("###########################################################################")

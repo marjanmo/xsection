@@ -77,4 +77,6 @@ EMBANKMENTS_POINT_OUT_SHP = "sample_data/Result_embankment_point.shp"
 XSECTION_POINTS_OUT_SHP = "sample_data/Result_profiles_points_points.shp"
 XSECTION_LINES_OUT_SHP = "sample_data/Result_profiles_lines_points.shp"
 
+PROFILES_DXF = "sample_data/Result_profiles_profiles.dxf"
+
 ####### END OF INPUT PARAMETERS LIST #####################
