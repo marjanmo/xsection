@@ -11,9 +11,9 @@ from osgeo import gdal, ogr, osr
 from shapely.ops import linemerge
 from scipy import stats, spatial
 import math
-from natsort import natsorted
 from math import sin, cos, radians, pi
 from dxfwrite import DXFEngine as dxf
+from natsort import natsorted, index_natsorted, order_by_index
 
 logger = logging.getLogger('root')  # default logger object to write all messages into
 
@@ -130,6 +130,7 @@ class Cross_sections():
     rel_z_f = "rel_z" #visina tock glede na najnizno tocko.
     chainage_f = "chainage"
     orientation_f = "orient"
+    point_order_f = "point_ord"
 
     round_decimals = 2
 
@@ -267,15 +268,13 @@ class Cross_sections():
         self.z_f = z_f
         self.point_id_f = point_id_f
 
-        #sort points profile and point wise
-        self.df = self.df.sort_values(by=[self.profile_id_f,self.point_id_f])
-
         self.straightify_measurements()
 
         # naredi df_lines iz df kar avtomatsko in takoj poracunaj lastnosti stacionazo,
         self.df_l = Shp.points_to_lines(df_points=self.df, groupby=self.profile_id_f)
         self.calculate_chainage_name_and_orientation()
         self.set_profile_orientation()
+
 
     def straightify_measurements(self):
 
@@ -348,15 +347,79 @@ class Cross_sections():
             else:
                 return linearized_points
 
-        self.df["geometry"] = self.df.groupby(self.profile_id_f)["geometry"].transform(lambda x: points_into_straight_row(x))
+        def points_series_into_straight_row(points_series,point_order_f):
+
+            '''
+            Funkcija vzame seznam tock, ki jih premakne tako, da se sestavijo v najbolj reprezerntativno linijo.
+            Vzame listo list s tremi argumenti: easting,northing,id_tocke. Id tocke je nujen, da sploh ves, za katero tocko je
+            slo v osnovi.
+            :return:
+            '''
+
+            if not isinstance(points_series,pd.Series):
+                raise Exception("Input mora biti series z indexom in Point točkami noter!")
+
+
+            points_list = [(i,points_series[i].x, points_series[i].y) for i in points_series.index]
+
+            points_we = sorted(points_list, key=lambda x: x[1])
+            points_sn = sorted(points_list, key=lambda x: x[2])
+
+            max_x = points_we[-1][1]-points_we[0][1]
+            max_y = points_sn[-1][2]-points_sn[0][2]
+
+            if max_x > max_y:
+                points_list = points_we
+            else:
+                points_list = points_sn
+
+            #Shrani vrstni red indexa
+            old_index = [i[0] for i in points_list]
+
+            #Spremeni nazaj v 2mestni list
+            points_list = [i[1:] for i in points_list]
+
+            x_coords = [i[0] for i in points_list]
+            y_coords = [i[1] for i in points_list]
+
+
+            # izracunaj smerni koeficient najboljsega linearnega fita za dane tocke
+            k, n, _, _, _ = stats.linregress(x_coords, y_coords)
+            # razvrsti tocke po glede na x ali y koordinate
+            dummy_first_point = [points_we[0][1] - 100, (points_we[0][1] - 100) * k + n]
+            dummy_last_point = [points_we[-1][1] + 100, (points_we[-1][1] + 100) * k + n]
+
+            dummy_line = LineString([dummy_first_point, dummy_last_point])
+            # vsako tocko projeciraj na dummy linijo, zapisi njeno novo vrednost, ter izracunaj
+            # vektor od zacetne lege, da bos vedu, kok popravit zacetni dummy_line
+
+            linearized_points = []
+
+
+            for point in points_list:
+                new_point = dummy_line.interpolate(dummy_line.project(Point(point)))  # http://stackoverflow.com/questions/24415806/coordinate-of-the-closest-point-on-a-line
+                linearized_points += [new_point]
+
+            straight_df = pd.DataFrame(index=old_index)
+            straight_df["geometry"]=linearized_points
+            straight_df[point_order_f]=range(len(old_index))
+
+            return(straight_df)
+
+        #NAPACNA, KER IZGUBI POVEZAVO Z OSTALIMI TOCKAMI!
+        # self.df["geometry"] = self.df.groupby(self.profile_id_f)["geometry"].transform(lambda x: points_into_straight_row(x))
         # https://stackoverflow.com/questions/45100212/pandas-reverse-column-values-groupwise
 
+        profiles = list(set(self.df[self.profile_id_f].values.tolist()))
 
-        # profiles = list(set(self.df[self.profile_id_f].values.tolist()))
-        #
-        # for profile in profiles:
-        #     profile_points = self.df.loc[self.df[self.profile_id_f]==profile]["geometry"].values.tolist()
-        #     df.loc[df[self.profile_id_f]==profile]["geometry"]=points_into_straight_row()
+        self.df[self.point_order_f]=None
+
+        for profile in profiles:
+            profile_points = self.df.loc[self.df[self.profile_id_f]==profile]["geometry"]
+            straight_points = points_series_into_straight_row(profile_points,self.point_order_f)
+            self.df.loc[straight_points.index,"geometry"]=straight_points["geometry"]
+            self.df.loc[straight_points.index,self.point_order_f]=straight_points[self.point_order_f]
+
 
     def rename_xsection_ids(self, naming_prefix_length=4):
 
@@ -455,8 +518,8 @@ class Cross_sections():
             else:
                 riverline_downstream = riverline
 
-            print("River: {}, Orientation: {}, Chainaging_direction: {}, "
-                  "prva tocka: {}".format(river.encode("utf-8"),self.df_r.direction,self.chainaging_direction,riverline_chainage.coords[0]))
+            # print("River: {}, Orientation: {}, Chainaging_direction: {}, "
+            #       "prva tocka: {}".format(river.encode("utf-8"),self.df_r.direction,self.chainaging_direction,riverline_chainage.coords[0]))
 
             # pripravi vse xs v eni reki
             df_xs_river = self.df_l.ix[self.df_l[self.river_f] == river]
@@ -505,12 +568,12 @@ class Cross_sections():
             self.df = pd.merge(self.df, self.df_l[[self.chainage_f, self.orientation_f, self.river_f, self.profile_id_f]],
                                on=[self.profile_id_f])
 
-    def calculate_internal_xz_chainages(self, from_centre=False):
+    def calculate_internal_xz_chainages_and_sort(self, from_centre=False):
 
         '''
         Funkcija vzame point shapefile s kategoriziranimi tockami, kjer vsaka pripada dolocenemu profilu (liniji) in dolocenemu obmocju (npr. Reki).
         Za vsako kombinacijo teh tock izracuna razdaljo med tocakmi in stacionaze. Oboje  zapise v podan field in izvrze nov fajl
-        POMEMBNO: CE HOCES POINT SAMPLAT VZDOLZNO OS REK, MORAS DAT OBVEZNO ID_FIELD=NONE in from_centre = False
+        POMEMBNO: CE HOCES POINT SAMPLAT VZDOLZNO OS REK, MORAS DAT OBVEZNO ID_FIELD=NONE in from_centre = False. Najprej moras pognat abs, da jih lahko sorta!
         :param point_shp:
         :param group_field:
         :param id_field:
@@ -524,7 +587,6 @@ class Cross_sections():
         #doloci, kako se bo imenoval field
         if from_centre:
             xz_f = self.xz_central_chainage_f
-
         else:
             xz_f = self.xz_abs_chainage_f
 
@@ -554,7 +616,7 @@ class Cross_sections():
                     #Izracunaj horizontalne visine
                     df_id = df_group.ix[df_group[self.profile_id_f] == id]
                     self.df.ix[(self.df[self.river_f] == group) & (
-                    self.df[self.profile_id_f] == id), xz_f] = Shp.calculate_chainages(df_id,river_geom)
+                    self.df[self.profile_id_f] == id), xz_f] = Shp.calculate_chainages(df_id,river_geom=river_geom,point_order_f=self.point_order_f)
 
                     #izracunaj relativno visino
                     self.df.ix[(self.df[self.river_f] == group) & (
@@ -562,6 +624,10 @@ class Cross_sections():
 
         # zaokrozi izracunane fielde
         self.df.loc[:, xz_f] = pd.to_numeric(self.df[xz_f]).round(self.round_decimals)
+
+        # Poskrbi, da bodo tocke sortirane po stacionazi in profilu!
+        self.df = self.df.reindex(index=order_by_index(self.df.index, index_natsorted(zip(self.df[self.chainage_f],self.df[self.xz_abs_chainage_f]))))
+
 
     def set_profile_orientation(self):
         # Funkcija za podane.
@@ -598,19 +664,23 @@ class Cross_sections():
         self.df = df_new
         self.df_l = Shp.points_to_lines(self.df, groupby=self.profile_id_f)
 
-    def export_profiles_to_dxf(self, dxf_file="test.dxf"):
+    def export_profiles_to_dxf(self, dxf_file, river_name):
 
         logger.info("Generating AutoCAD style profile graphics... ")
 
-        DISTANCE_BETWEEN_PROFILES_Z = 20
-        DISTANCE_BETWEEN_PROFILES_X = 20
-        BOX_BUFFER = 10
-        TEXTBOX_ROW_HEIGHT = 1
-        MAX_NUMBER_OF_PROFILES_IN_LINE = 6
         GLOBAL_X0 = 0
         GLOBAL_Z0 = 0
-        PROFILE_Z_SHIFT = 5
+        DISTANCE_BETWEEN_PROFILES_Z = 10
+        DISTANCE_BETWEEN_PROFILES_X = 10
+        BOX_BUFFER = 5
+        TEXTBOX_ROW_HEIGHT = 1.5
+        MAX_NUMBER_OF_PROFILES_IN_LINE = 5
+        PROFILE_Z_SHIFT = 2
+        VZD_PROFILE_HEIGHT_FACTOR = 0.5
+        PROFILE_HEIGHT_FACTOR = 1
+
         COLUMNS_TO_LABEL = ["z","abs_profil","cen_profil"]
+        LABEL_NAMES = ["Teren [m.n.v]","Od prve tocke [m]","Od osi [m]"]
         TEXTBOX_HEIGHT = len(COLUMNS_TO_LABEL)*TEXTBOX_ROW_HEIGHT
 
         if not self.xz_abs_chainage_f in self.df.columns:
@@ -623,54 +693,160 @@ class Cross_sections():
                 "Cross section object doesn't have xz_cen_chainge field assigned yet. "
                 "Make sure to run 'calculate_internal_chainages' method first with central = True!")
 
+        x0 = GLOBAL_X0
+        z0 = GLOBAL_Z0
+
+        #Preberi geometry od reke
+        river_geom = self.df_r.df.loc[self.df_r.df[self.river_f]==river_name,"geometry"].loc[0]
+
         #Doloci, koliko siroke profile bos delal.
         PROFILE_BOX_WIDTH = int(self.df[self.xz_abs_chainage_f].max()) + BOX_BUFFER
         PROFILE_BOX_HEIGHT = int(self.df[self.rel_z_f].max()) + BOX_BUFFER + PROFILE_Z_SHIFT + TEXTBOX_HEIGHT
 
         profile_in_line = 1
 
-        x0 = GLOBAL_X0
-        z0 = GLOBAL_Z0
-
         #Ustvari dxf object
         drawing = dxf.drawing(dxf_file)
         drawing.add_layer('PROFILE', color=0)
-        drawing.add_layer('PROFILE_VERT', color=1)
+        drawing.add_layer('PROFILE_VERT', color=180)
         drawing.add_layer('PROFILE_TEXT', color=0)
         drawing.add_layer('PROFILE_CHAINAGE', color=0)
-        drawing.add_layer('BOX', color=0)
-        drawing.add_layer('BOX_TEXT', color=0)
+        drawing.add_layer('OS', color=0)
+        drawing.add_layer('BOX', color=30)
+        drawing.add_layer('BOX_TEXT', color=20)
 
-        drawing.add(dxf.line((0, 0), (10, 0), color=7))
-        drawing.add(dxf.text('Test', insert=(0, 0.2), layer='TEXTLAYER'))
+        #Uredi tocke po profilu in točkah
 
+        vzdolzni_profil_points = []
 
         for group in self.df[self.profile_id_f].unique():
             #ponastavi stevce za novo vrstico
-            if profile_in_line > 6:
+            if profile_in_line > MAX_NUMBER_OF_PROFILES_IN_LINE:
                 profile_in_line = 1
-                x0 -= GLOBAL_X0
-                z0 -= PROFILE_BOX_HEIGHT
+                x0 = GLOBAL_X0
+                z0 -= (PROFILE_BOX_HEIGHT + DISTANCE_BETWEEN_PROFILES_Z)
 
-            df_id = self.df[self.df[self.profile_id_f] == group]
+            df_id = self.df[self.df[self.profile_id_f] == group].reset_index()
 
-
+            #Izracunaj, koliko moras dodat, da bo profil na sredini.
+            profile_width = df_id[self.xz_abs_chainage_f].max() + 2*BOX_BUFFER
 
             # PROFIL
             x = df_id[self.xz_abs_chainage_f].values.tolist()
             z = df_id[self.rel_z_f].values.tolist()
-            x = [x0 + i for i in x]
-            z = [z0 + PROFILE_Z_SHIFT + TEXTBOX_HEIGHT + i for i in z]
+            x = [x0 + BOX_BUFFER + i for i in x]
+            z = [z0 + PROFILE_Z_SHIFT + TEXTBOX_HEIGHT + i*PROFILE_HEIGHT_FACTOR for i in z]
             profile = tuple(zip(x,z))
             drawing.add(dxf.polyline(profile,layer="PROFILE"))
 
+            # PROFILE_VERT
             for point in profile:
                 drawing.add(dxf.line(start=point,end=(point[0],z0+TEXTBOX_HEIGHT),layer="PROFILE_VERT"))
 
+            #BOX
+            for i,col in enumerate(COLUMNS_TO_LABEL):
+                drawing.add(dxf.polyline([[x0, z0+i*TEXTBOX_ROW_HEIGHT],
+                                          [x0+profile_width, z0+i*TEXTBOX_ROW_HEIGHT],
+                                          [x0+profile_width, z0+(i+1)*TEXTBOX_ROW_HEIGHT],
+                                          [x0, z0+(i+1)*TEXTBOX_ROW_HEIGHT],
+                                          [x0, z0 + i * TEXTBOX_ROW_HEIGHT]],layer="BOX"))
+
+                #Dodaj naslov
+                drawing.add(dxf.text(LABEL_NAMES[i],insert=(x0+BOX_BUFFER/2,z0+(i+0.5)*TEXTBOX_ROW_HEIGHT), layer='BOX_TEXT'))
+
+                for j,x_pos in enumerate(x):
+                    drawing.add(dxf.text(df_id.loc[j,col], insert=(x_pos, z0+(i+0.5)*TEXTBOX_ROW_HEIGHT), layer='BOX_TEXT'))
+
+            # OS IN OZNAKE OSI
+            profil_tloris = LineString([df_id["geometry"].iloc[0],df_id["geometry"].iloc[-1]])
+            presecisce_tloris = profil_tloris.intersection(river_geom)
+            print(presecisce_tloris)
+            xz_abs_chainage_os = round(df_id.loc[df_id[self.xz_abs_chainage_f]==0,"geometry"].loc[0].distance(presecisce_tloris),2)
+
+            os_line = [[x0 + BOX_BUFFER + xz_abs_chainage_os, z0 + PROFILE_Z_SHIFT/2 + TEXTBOX_HEIGHT],
+                       [x0 + BOX_BUFFER + xz_abs_chainage_os, z0 + PROFILE_Z_SHIFT + 2*TEXTBOX_HEIGHT + df_id[self.rel_z_f].max()]]
+
+            presecisce_naris = list(LineString(profile).intersection(LineString(os_line)).coords)[0]
+
+            z_os_real = round(df_id[self.z_f].min()+presecisce_naris[1]-(z0 + PROFILE_Z_SHIFT + TEXTBOX_HEIGHT),2)
+
+            print(z_os_real)
+            print(xz_abs_chainage_os)
+            print()
+
+            #Dodaj tocke za vzdolzni profil
+            vzdolzni_profil_points.append([df_id.loc[0,self.chainage_f],z_os_real])
+
+            #narisi os:
+            drawing.add(dxf.line(start=os_line[0], end=os_line[-1], layer="OS"))
+
+            #Dodaj text z visino osi
+            drawing.add(dxf.text(z_os_real, insert=[presecisce_naris[0],z0 + TEXTBOX_ROW_HEIGHT/2], layer="BOX_TEXT")) #Teren
+            drawing.add(dxf.text(xz_abs_chainage_os, insert=[presecisce_naris[0],z0 + 3*TEXTBOX_ROW_HEIGHT/2], layer="BOX_TEXT")) #Abs
+            drawing.add(dxf.text("0", insert=[presecisce_naris[0],z0 + 5*TEXTBOX_ROW_HEIGHT/2], layer="BOX_TEXT")) #Cent
+
+
+            # IME IN STACIONAŽA
+            drawing.add(dxf.text("Profil " + str(df_id.loc[0,self.profile_id_f]),
+                                 insert=(presecisce_naris[0],z0 + TEXTBOX_HEIGHT+PROFILE_Z_SHIFT/2),
+                                 layer="PROFILE_TEXT"))
+
+            drawing.add(dxf.text("0+{}m".format(df_id.loc[0,self.chainage_f]),
+                                 insert=(presecisce_naris[0],z0 + TEXTBOX_HEIGHT+PROFILE_Z_SHIFT/4),
+                                 layer="PROFILE_CHAINAGE"))
 
             #Premakni cager za naslednji profil
             profile_in_line += 1
-            x0 += PROFILE_BOX_WIDTH
+            x0 += (PROFILE_BOX_WIDTH + DISTANCE_BETWEEN_PROFILES_X)
+
+
+
+        ###############################
+        ########  VZDOLZNA OZ  ########
+        ###############################
+
+        VZD_COLUMNS = ["Teren [m.n.v.]", "Stacionaza [m]", "Profil"]
+        VZD_TEXTBOX_HEIGHT = len(VZD_COLUMNS)*TEXTBOX_ROW_HEIGHT
+
+
+        vzd_profile_length = vzdolzni_profil_points[-1][0] + 2 * BOX_BUFFER
+
+
+        #Doloci izhodisce
+        x0_vzd = GLOBAL_X0 + (PROFILE_BOX_WIDTH+DISTANCE_BETWEEN_PROFILES_X)*MAX_NUMBER_OF_PROFILES_IN_LINE + DISTANCE_BETWEEN_PROFILES_X
+        z0_vzd = GLOBAL_Z0
+
+        x = [x0_vzd + BOX_BUFFER + i[0] for i in vzdolzni_profil_points]
+        z = [z0_vzd + PROFILE_Z_SHIFT + TEXTBOX_HEIGHT + (i[1] - min([i[1] for i in vzdolzni_profil_points]))*VZD_PROFILE_HEIGHT_FACTOR for i in vzdolzni_profil_points]
+
+        vzd_profile = tuple(zip(x,z))
+        drawing.add(dxf.polyline(vzd_profile,layer="PROFILE"))
+
+
+        # PROFILE_VERT
+        for point in vzd_profile:
+            drawing.add(dxf.line(start=point,end=(point[0],z0_vzd+VZD_TEXTBOX_HEIGHT),layer="PROFILE_VERT"))
+
+
+        # BOX
+        for i, col in enumerate(VZD_COLUMNS):
+            drawing.add(dxf.polyline([[x0_vzd, z0_vzd + i * TEXTBOX_ROW_HEIGHT],
+                                      [x0_vzd + vzd_profile_length, z0_vzd + i * TEXTBOX_ROW_HEIGHT],
+                                      [x0_vzd + vzd_profile_length, z0_vzd + (i + 1) * TEXTBOX_ROW_HEIGHT],
+                                      [x0_vzd, z0_vzd + (i + 1) * TEXTBOX_ROW_HEIGHT],
+                                      [x0_vzd, z0_vzd + i * TEXTBOX_ROW_HEIGHT]], layer="BOX"))
+
+            # Dodaj naslov
+            drawing.add(dxf.text(VZD_COLUMNS[i], insert=(x0_vzd + BOX_BUFFER / 2, z0_vzd + (i + 0.5) * TEXTBOX_ROW_HEIGHT), layer='BOX_TEXT'))
+
+        profili_imena = natsorted(self.df[self.profile_id_f].unique())
+
+        #Dodaj: PAZI! Hardcoded visine!
+        for j,chainage in enumerate(vzdolzni_profil_points):
+            drawing.add(dxf.text(chainage[1], insert=(x[j], z0_vzd + 0.5 * TEXTBOX_ROW_HEIGHT), layer='BOX_TEXT'))
+            drawing.add(dxf.text(chainage[0], insert=(x[j], z0_vzd + 1.5 * TEXTBOX_ROW_HEIGHT), layer='BOX_TEXT'))
+            drawing.add(dxf.text(profili_imena[j], insert=(x[j], z0_vzd + 2.5 * TEXTBOX_ROW_HEIGHT), layer='BOX_TEXT'))
+
 
         #Shrani
         drawing.save()
@@ -1187,9 +1363,12 @@ class Shp():
         return gpd.GeoDataFrame(df,crs="+init=epsg:{}".format(epsg))
 
     @staticmethod
-    def calculate_chainages(df, river_geom=None):
+    def calculate_chainages(df, point_order_f = None, river_geom=None):
         "Calculates cumsum distance between the points in a given dataframe. No grouping by default, has to be done before calling a function"
         "Ce podas geometrijo reke, bo sklepal, da hoces razdaljo od sredine, sicer pa samo interni izracun narediš."
+
+        if point_order_f:
+            df = df.sort_values(by=point_order_f)
 
         if river_geom == None:
             # caluclate distance to the previous point
@@ -1207,12 +1386,19 @@ class Shp():
 
         else:
             df["_ch_abs"]=None
-
-            profile_geom = LineString([df["geometry"].iloc[0],df["geometry"].iloc[-1]])
+            profile_geom = LineString(df["geometry"].values.tolist())
             middle_point = profile_geom.intersection(river_geom)
+            print(df)
+            print(middle_point)
+            print(profile_geom)
+            print(df.reset_index().loc[0,"geometry"].distance(middle_point))
+            print()
             for i in df.index:
                 df.loc[i,"_ch_abs"]=df.loc[i,"geometry"].distance(middle_point)
+                print(df.loc[i,"_ch_abs"])
 
+            print()
+            print()
             return df["_ch_abs"]
 
     @staticmethod

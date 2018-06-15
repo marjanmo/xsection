@@ -46,12 +46,12 @@ elif CREATION_METHOD == "lines":
 xsections.df.to_file(XSECTION_POINTS_OUT_SHP)
 
 
+
 # Calculate internal xz chainages per profile (for xns11_file)
-xsections.calculate_internal_xz_chainages(from_centre=False)
+xsections.calculate_internal_xz_chainages_and_sort(from_centre=False)
 
 #Calculate internal xz chainage per profile from centre
-xsections.calculate_internal_xz_chainages(from_centre=True)
-
+xsections.calculate_internal_xz_chainages_and_sort(from_centre=True)
 
 
 ###########
@@ -88,7 +88,7 @@ if EMBANKMENTS_SHP:
         embankments.df_p.to_file(EMBANKMENTS_POINT_OUT_SHP)
 
 if PROFILES_DXF:
-    xsections.export_profiles_to_dxf(PROFILES_DXF)
+    xsections.export_profiles_to_dxf(PROFILES_DXF, "Icmank")
 
 print("")
 print("###########################################################################")
