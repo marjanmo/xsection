@@ -236,12 +236,14 @@ class Cross_sections():
         self.df = Shp.point_sampling_tool(df_points=self.df, src_raster=self.dem_file, dem_field=self.z_f,
                                           error_on_nan=False)
 
-
         # Ce slucajno ni imel profil_id iz prve, preimenuj profile
         if profile_id_f == None:
             self.rename_xsection_ids()
 
         self.set_profile_orientation()
+
+        # Ker si ustvaril point shp iz nule, kar prekopiraj point_id_f v order_f. Ker ves, da je ok.
+        self.df[self.point_order_f]=self.df[self.point_id_f]
 
 
 
@@ -263,10 +265,11 @@ class Cross_sections():
         if point_id_f is None:
             self.df[self.point_id_f] = range(len(self.df.index))
         else:
-            self.profile_id_f = profile_id_f
+            #self.profile_id_f = profile_id_f -_> To je delalo za dxf measurementse, ampak je jebalo pri lines
+            self.point_id_f = point_id_f
 
         self.z_f = z_f
-        self.point_id_f = point_id_f
+        self.profile_id_f = profile_id_f
 
         self.straightify_measurements()
 
@@ -676,7 +679,7 @@ class Cross_sections():
         TEXTBOX_ROW_HEIGHT = 1.5
         MAX_NUMBER_OF_PROFILES_IN_LINE = 5
         PROFILE_Z_SHIFT = 2
-        VZD_PROFILE_HEIGHT_FACTOR = 0.5
+        VZD_PROFILE_HEIGHT_FACTOR = 1
         PROFILE_HEIGHT_FACTOR = 1
 
         COLUMNS_TO_LABEL = ["z","abs_profil","cen_profil"]
@@ -707,13 +710,13 @@ class Cross_sections():
 
         #Ustvari dxf object
         drawing = dxf.drawing(dxf_file)
-        drawing.add_layer('PROFILE', color=0)
-        drawing.add_layer('PROFILE_VERT', color=180)
-        drawing.add_layer('PROFILE_TEXT', color=0)
-        drawing.add_layer('PROFILE_CHAINAGE', color=0)
-        drawing.add_layer('OS', color=0)
-        drawing.add_layer('BOX', color=30)
-        drawing.add_layer('BOX_TEXT', color=20)
+        drawing.add_layer('PROFILE', color=3)
+        drawing.add_layer('PROFILE_VERT', color=2)
+        drawing.add_layer('PROFILE_TEXT', color=1)
+        drawing.add_layer('PROFILE_CHAINAGE', color=1)
+        drawing.add_layer('OS', color=5)
+        drawing.add_layer('BOX', color=1)
+        drawing.add_layer('BOX_TEXT', color=1)
 
         #Uredi tocke po profilu in točkah
 
@@ -760,7 +763,6 @@ class Cross_sections():
             # OS IN OZNAKE OSI
             profil_tloris = LineString([df_id["geometry"].iloc[0],df_id["geometry"].iloc[-1]])
             presecisce_tloris = profil_tloris.intersection(river_geom)
-            print(presecisce_tloris)
             xz_abs_chainage_os = round(df_id.loc[df_id[self.xz_abs_chainage_f]==0,"geometry"].loc[0].distance(presecisce_tloris),2)
 
             os_line = [[x0 + BOX_BUFFER + xz_abs_chainage_os, z0 + PROFILE_Z_SHIFT/2 + TEXTBOX_HEIGHT],
@@ -769,10 +771,6 @@ class Cross_sections():
             presecisce_naris = list(LineString(profile).intersection(LineString(os_line)).coords)[0]
 
             z_os_real = round(df_id[self.z_f].min()+presecisce_naris[1]-(z0 + PROFILE_Z_SHIFT + TEXTBOX_HEIGHT),2)
-
-            print(z_os_real)
-            print(xz_abs_chainage_os)
-            print()
 
             #Dodaj tocke za vzdolzni profil
             vzdolzni_profil_points.append([df_id.loc[0,self.chainage_f],z_os_real])
@@ -1367,6 +1365,7 @@ class Shp():
         "Calculates cumsum distance between the points in a given dataframe. No grouping by default, has to be done before calling a function"
         "Ce podas geometrijo reke, bo sklepal, da hoces razdaljo od sredine, sicer pa samo interni izracun narediš."
 
+        #TODO: Delalo pri dxf measurements, iz lines pa ne dela. Popravljam
         if point_order_f:
             df = df.sort_values(by=point_order_f)
 
@@ -1388,17 +1387,10 @@ class Shp():
             df["_ch_abs"]=None
             profile_geom = LineString(df["geometry"].values.tolist())
             middle_point = profile_geom.intersection(river_geom)
-            print(df)
-            print(middle_point)
-            print(profile_geom)
-            print(df.reset_index().loc[0,"geometry"].distance(middle_point))
-            print()
+
             for i in df.index:
                 df.loc[i,"_ch_abs"]=df.loc[i,"geometry"].distance(middle_point)
-                print(df.loc[i,"_ch_abs"])
 
-            print()
-            print()
             return df["_ch_abs"]
 
     @staticmethod

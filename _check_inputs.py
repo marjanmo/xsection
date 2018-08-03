@@ -1,4 +1,4 @@
-from icmank_inputs import *
+from brezovica_inputs import *
 import geopandas as gpd
 import os
 

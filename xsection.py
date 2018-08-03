@@ -43,10 +43,6 @@ elif CREATION_METHOD == "lines":
         xsections.populate_from_line_shp(df_l=XSECTION_SHP, profile_id_f=XSECTION_PROFILE_ID_FIELD,dem_file=DEM_FILE)
 
 
-xsections.df.to_file(XSECTION_POINTS_OUT_SHP)
-
-
-
 # Calculate internal xz chainages per profile (for xns11_file)
 xsections.calculate_internal_xz_chainages_and_sort(from_centre=False)
 
@@ -76,7 +72,6 @@ if XSECTION_LINES_OUT_SHP:
     xsections.df_l.to_file(XSECTION_LINES_OUT_SHP)
     # geo.Shp.save_to_shapefile_with_prj(geo_df=xsections.df_l, file_out=LINES_OUT_SHP, epsg=3794)
 
-
 if RIVER_POINT_OUT_SHP:
     rivers.point_sample_line(interpolation_density=SAMPLING_DENSITY,dem_file=DEM_FILE)
     rivers.df_p.to_file(RIVER_POINT_OUT_SHP)
@@ -93,7 +88,7 @@ if PROFILES_DXF:
 print("")
 print("###########################################################################")
 print("######### Xsection has finished sucessfully! Generated results are:")
-for i in [XNS11_OUT_TXT,RIVER_POINT_OUT_SHP,XSECTION_POINTS_OUT_SHP,XSECTION_LINES_OUT_SHP,EMBANKMENTS_POINT_OUT_SHP]:
+for i in [XNS11_OUT_TXT,RIVER_POINT_OUT_SHP,XSECTION_POINTS_OUT_SHP,XSECTION_LINES_OUT_SHP,EMBANKMENTS_POINT_OUT_SHP,PROFILES_DXF]:
     if i:
         print(i)
 print("###########################################################################")
