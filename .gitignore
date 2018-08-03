@@ -4,7 +4,7 @@
 
 # Compiled python modules.
 *.pyc
-
+*_inputs.py
 
 README.md
 

@@ -10,7 +10,6 @@ logger = utils.create_logger()
 rivers = geo.Rivers(df=RIVER_SHP, name_f=RIVERNAME_FIELD)
 rivers.set_river_direction(dem_file=DEM_FILE, direction=CHAINAGING_DIRECTION)
 rivers.df.to_file(RIVER_SHP)
-# geo.Shp.save_to_shapefile_with_prj(geo_df=rivers.df,file_out=RIVER_SHP,epsg=3794)
 
 if EMBANKMENTS_SHP:
     embankments = geo.Rivers(df=EMBANKMENTS_SHP,name_f=EMBANKMENTS_NAME_FIELD)
