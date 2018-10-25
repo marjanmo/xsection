@@ -1360,6 +1360,7 @@ class Shp():
         del df[y_col]
         return gpd.GeoDataFrame(df,crs="+init=epsg:{}".format(epsg))
 
+
     @staticmethod
     def calculate_chainages(df, point_order_f = None, river_geom=None):
         "Calculates cumsum distance between the points in a given dataframe. No grouping by default, has to be done before calling a function"
@@ -1393,6 +1394,7 @@ class Shp():
 
             return df["_ch_abs"]
 
+
     @staticmethod
     def save_to_shapefile_with_prj(geo_df, file_out, epsg, encoding="utf-8"):
 
@@ -1413,6 +1415,7 @@ class Shp():
 
         # save file
         geo_df.to_file(filename=file_out, crs_wkt=prj_dict[epsg], encoding=encoding)
+
 
     @staticmethod
     def filter_shapefile_df(df_in, **fields_and_values_pairs):
@@ -1435,6 +1438,7 @@ class Shp():
                 df_in = df_in[df_in[field] == values]
 
         return df_in
+
 
     @staticmethod
     def multiline_to_line(df_lines, river_field=None, preserve_fields=None):
@@ -1492,6 +1496,7 @@ class Shp():
             df_lines = df_merged
 
         return df_lines
+
 
     @staticmethod
     def lines_to_points(df_lines=None, interpolate=None, point_id_f="point_id"):
@@ -1560,6 +1565,7 @@ class Shp():
 
         return master_df
 
+
     @staticmethod
     def points_to_lines(df_points=None, groupby=None):
 
@@ -1586,6 +1592,7 @@ class Shp():
             df_lines.loc[len(df_lines), group_cols] = group_values
 
         return df_lines.dropna(axis=1, how="all").sort_values(by=groupby)
+
 
     @staticmethod
     def point_sampling_tool(src_raster=None, df_points=None, dem_field="DEM", error_on_nan=True, round_decimals=2):
@@ -1651,6 +1658,7 @@ class Shp():
         df_points[dem_field] = df_points[dem_field].round(round_decimals)
 
         return df_points
+
 
     @staticmethod
     def point_shp_with_attributes_to_kml(points_gdf, gdf_epsg=3794, name_col=None, desc_col=None, data_cols=None,
@@ -1725,6 +1733,7 @@ class Shp():
             f.write('</kml>\n')
             f.close()
 
+
     @staticmethod
     def xs_to_3D_kml(points_gdf, z_col, xs_epsg=3794, profile_id_field="profile_id",
                      profile_chainage_field="chainage", extrude=0, outfile=None, false_height_m=30):
@@ -1794,6 +1803,7 @@ class Shp():
             f.write('</kml>\n')
             f.close()
 
+
     @staticmethod
     def autoroute_points_df(points_df, x_col="e", y_col="n"):
 
@@ -1845,6 +1855,7 @@ class Shp():
                 points_df.ix[(points_df[x_col] == best_candidate[0]) & (points_df[y_col] == best_candidate[1])])
 
         return ordered_points_df
+
 
     @staticmethod
     def create_lines_along_chainage(df_chainage,profile_density,profile_width):
