@@ -505,6 +505,7 @@ class Cross_sections():
 
         # tukaj pa morajo profili ze imet svoje pravo poimenovanje (tako rek, kot tudi IDjev)
         for river in rivers:
+            print(river)
             # pripravi Linestring od reke
             riverline = river_df.ix[river_df[self.river_f] == river, "geometry"].values[0]
 
